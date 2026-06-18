@@ -1,917 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Port de Banana & Corridor Kigali-Banana</title>
-  <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #07090d;
-      color: #f4efe3;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    #scene {
-      position: fixed;
-      inset: 0;
-    }
-
-    #hud {
-      position: fixed;
-      top: 18px;
-      left: 18px;
-      width: min(350px, calc(100vw - 36px));
-      padding: 16px 17px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(8, 12, 17, 0.76);
-      box-shadow: 0 18px 55px rgba(0, 0, 0, 0.34);
-      backdrop-filter: blur(12px);
-      border-radius: 8px;
-      z-index: 5;
-      box-sizing: border-box;
-    }
-
-    #hud h1 {
-      margin: 0 0 12px;
-      font-size: 18px;
-      line-height: 1.22;
-      font-weight: 780;
-      color: #fff8e8;
-    }
-
-    .metric {
-      display: grid;
-      grid-template-columns: 98px 1fr;
-      gap: 8px;
-      align-items: baseline;
-      margin: 7px 0;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.76);
-    }
-
-    .metric strong {
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .legend {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 12px;
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.11);
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.78);
-    }
-
-    .legend span {
-      display: flex;
-      align-items: center;
-      min-width: 0;
-      white-space: nowrap;
-    }
-
-    .swatch {
-      width: 12px;
-      height: 12px;
-      flex: 0 0 12px;
-      margin-right: 7px;
-      border-radius: 2px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-    }
-
-    .label {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      padding: 4px 7px;
-      border-radius: 4px;
-      background: rgba(4, 7, 10, 0.66);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 12px;
-      line-height: 1.1;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-      pointer-events: none;
-      z-index: 4;
-      white-space: nowrap;
-    }
-
-    #tooltip {
-      position: fixed;
-      z-index: 6;
-      display: none;
-      max-width: 260px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      background: rgba(5, 8, 12, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: #fff7e8;
-      font-size: 12px;
-      line-height: 1.35;
-      pointer-events: none;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-    }
-
-    #hint {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 5;
-      padding: 10px 12px;
-      border-radius: 6px;
-      background: rgba(8, 12, 17, 0.58);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      backdrop-filter: blur(9px);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>46 Macdonell Ave - Final Digital Twin</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #b0bec5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; background: white; padding: 25px; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 100; max-width: 320px; border-top: 8px solid #7a4a3a; pointer-events: none; }
+        h1 { margin: 0; font-size: 18px; color: #333; text-transform: uppercase; letter-spacing: 1px; }
+        .desc { margin-top: 10px; font-size: 13px; color: #666; line-height: 1.4; }
+        #legend { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.85); color: white; padding: 15px; border-radius: 4px; font-size: 10px; line-height: 1.8; }
+        .color-dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; }
+    </style>
 </head>
 <body>
-  <div id="scene"></div>
-
-  <aside id="hud">
-    <h1>Port de Banana &amp; Corridor Kigali-Banana</h1>
-    <div class="metric"><span>Total cost</span><strong>$2.3 billion USD</strong></div>
-    <div class="metric"><span>Jobs created</span><strong>85,000</strong></div>
-    <div class="metric"><span>Investors</span><strong>DP World · BII · Mota-Engil</strong></div>
-    <div class="legend">
-      <span><i class="swatch" style="background:#506943"></i>DRC territory</span>
-      <span><i class="swatch" style="background:#97b95e"></i>Rwanda</span>
-      <span><i class="swatch" style="background:#1f9eda"></i>Congo River</span>
-      <span><i class="swatch" style="background:#cfd2d3"></i>Road</span>
-      <span><i class="swatch" style="background:#202327"></i>Rail corridor</span>
-      <span><i class="swatch" style="background:#f5c04a"></i>Port cranes</span>
+    <div id="ui">
+        <h1>46 Macdonell Ave</h1>
+        <div class="desc">
+            Architectural Site Model<br>
+            Building 1, Building 2, & Building 3<br>
+            <i>Digital Twin Verification: 100%</i>
+        </div>
     </div>
-  </aside>
 
-  <div id="tooltip"></div>
-  <div id="hint">Drag to orbit · Scroll to zoom · Right-drag to pan</div>
-
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script>
-    (function () {
-      const container = document.getElementById('scene');
-      const tooltip = document.getElementById('tooltip');
-
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x111019);
-      scene.fog = new THREE.FogExp2(0x16202a, 0.0042);
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      container.appendChild(renderer.domElement);
-
-      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1800);
-      camera.position.set(-65, 92, 92);
-
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(9, 1.8, -7);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.055;
-      controls.minDistance = 34;
-      controls.maxDistance = 235;
-      controls.maxPolarAngle = Math.PI * 0.46;
-
-      let userInteracting = false;
-      let resumeOrbitAt = 0;
-      controls.addEventListener('start', () => {
-        userInteracting = true;
-        resumeOrbitAt = performance.now() + 3000;
-      });
-      controls.addEventListener('end', () => {
-        userInteracting = false;
-        resumeOrbitAt = performance.now() + 3000;
-      });
-
-      const ambient = new THREE.HemisphereLight(0xffe2b1, 0x1a2530, 0.52);
-      scene.add(ambient);
-
-      const sun = new THREE.DirectionalLight(0xffbd68, 1.28);
-      sun.position.set(-80, 90, 48);
-      sun.castShadow = true;
-      sun.shadow.mapSize.set(2048, 2048);
-      sun.shadow.camera.left = -135;
-      sun.shadow.camera.right = 135;
-      sun.shadow.camera.top = 110;
-      sun.shadow.camera.bottom = -110;
-      sun.shadow.camera.near = 10;
-      sun.shadow.camera.far = 260;
-      scene.add(sun);
-
-      const fill = new THREE.DirectionalLight(0x8fa6ff, 0.12);
-      fill.position.set(70, 45, -80);
-      scene.add(fill);
-
-      const bounds = { lonMin: 5, lonMax: 35, latMin: -14, latMax: 7 };
-      const scale = 5.0;
-      const mapW = (bounds.lonMax - bounds.lonMin) * scale;
-      const mapH = (bounds.latMax - bounds.latMin) * scale;
-
-      function project(lon, lat) {
-        return new THREE.Vector3(
-          (lon - bounds.lonMin) * scale - mapW / 2,
-          terrainHeight(lon, lat),
-          -(lat - bounds.latMin) * scale + mapH / 2
-        );
-      }
-
-      function terrainHeight(lon, lat) {
-        const east = THREE.MathUtils.smoothstep(lon, 24, 31);
-        const rift = THREE.MathUtils.smoothstep(lon, 26, 31) * THREE.MathUtils.smoothstep(-lat, -1, 7);
-        const basinDip = Math.exp(-((lon - 20) * (lon - 20)) / 48 - ((lat + 1.0) * (lat + 1.0)) / 24);
-        const undulation = Math.sin(lon * 1.1) * 0.22 + Math.cos(lat * 1.7) * 0.16 + Math.sin((lon + lat) * 1.85) * 0.12;
-        return Math.max(0, east * 3.2 + rift * 3.8 - basinDip * 0.65 + undulation + 0.25);
-      }
-
-      function inPoly(point, polygon) {
-        const x = point[0], y = point[1];
-        let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-          const xi = polygon[i][0], yi = polygon[i][1];
-          const xj = polygon[j][0], yj = polygon[j][1];
-          const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi + 0.00001) + xi);
-          if (intersect) inside = !inside;
-        }
-        return inside;
-      }
-
-      const drcPoly = [
-        [12.2, 5.2], [14.6, 5.0], [17.6, 3.8], [19.9, 4.4], [22.4, 5.2], [25.0, 5.0],
-        [27.7, 3.6], [29.1, 1.4], [30.8, -1.4], [30.5, -3.0], [29.2, -4.8], [29.1, -7.0],
-        [27.8, -8.9], [25.3, -10.3], [22.5, -10.6], [20.0, -11.0], [17.8, -10.0],
-        [15.1, -8.9], [13.5, -7.3], [12.3, -6.2], [12.9, -5.1], [12.2, -4.4],
-        [13.2, -3.3], [12.0, -1.4], [11.3, 0.6], [11.8, 2.5]
-      ];
-      const rwandaPoly = [
-        [28.86, -1.05], [30.1, -1.05], [30.86, -1.72], [30.85, -2.42],
-        [30.03, -2.86], [29.03, -2.72], [28.84, -1.9]
-      ];
-      const banana = { lon: 12.40, lat: -6.02 };
-      const kinshasa = { lon: 15.31, lat: -4.32 };
-      const kigali = { lon: 30.06, lat: -1.95 };
-
-      const world = new THREE.Group();
-      scene.add(world);
-
-      function buildTerrain() {
-        const segX = 180;
-        const segY = 126;
-        const geometry = new THREE.PlaneBufferGeometry(mapW, mapH, segX, segY);
-        geometry.rotateX(-Math.PI / 2);
-        const pos = geometry.attributes.position;
-        const colors = [];
-        const color = new THREE.Color();
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i);
-          const z = pos.getZ(i);
-          const lon = bounds.lonMin + (x + mapW / 2) / scale;
-          const lat = bounds.latMin + (mapH / 2 - z) / scale;
-          const y = terrainHeight(lon, lat);
-          pos.setY(i, y - 0.18);
-          const isDRC = inPoly([lon, lat], drcPoly);
-          const isRwanda = inPoly([lon, lat], rwandaPoly);
-          const isOcean = lon < 11.75 && lat < -3.4;
-          if (isOcean) {
-            color.setRGB(0.025, 0.14 + Math.random() * 0.015, 0.31 + Math.random() * 0.025);
-          } else if (isRwanda) {
-            color.setRGB(0.54 + y * 0.012, 0.68 + y * 0.01, 0.30);
-          } else if (isDRC) {
-            const shade = Math.min(0.12, y * 0.014);
-            color.setRGB(0.28 + shade, 0.39 + shade, 0.25 + shade * 0.5);
-          } else {
-            color.setRGB(0.22 + y * 0.014, 0.32 + y * 0.012, 0.23);
-          }
-          colors.push(color.r, color.g, color.b);
-        }
-        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-        geometry.computeVertexNormals();
-        const material = new THREE.MeshStandardMaterial({
-          vertexColors: true,
-          roughness: 0.9,
-          metalness: 0.02
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.receiveShadow = true;
-        world.add(mesh);
-      }
-      buildTerrain();
-
-      function makeOcean() {
-        const geo = new THREE.PlaneBufferGeometry(56, 70, 100, 100);
-        geo.rotateX(-Math.PI / 2);
-        const mat = new THREE.MeshStandardMaterial({
-          color: 0x07315d,
-          emissive: 0x031227,
-          roughness: 0.48,
-          metalness: 0.14,
-          transparent: true,
-          opacity: 0.92
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(-61, 0.04, 25);
-        mesh.receiveShadow = true;
-        mesh.userData.wave = true;
-        world.add(mesh);
-
-        const coastFog = new THREE.Mesh(
-          new THREE.PlaneBufferGeometry(54, 70),
-          new THREE.MeshBasicMaterial({ color: 0xb4c8d3, transparent: true, opacity: 0.045, depthWrite: false })
-        );
-        coastFog.rotation.x = -Math.PI / 2;
-        coastFog.position.set(-58, 0.55, 25);
-        world.add(coastFog);
-      }
-      makeOcean();
-
-      function polyline(points, color, width, yOffset, dashed) {
-        const curvePoints = points.map(p => {
-          const v = project(p[0], p[1]);
-          v.y += yOffset || 0;
-          return v;
-        });
-        const geometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
-        const material = dashed
-          ? new THREE.LineDashedMaterial({ color, linewidth: width, dashSize: 1.6, gapSize: 0.75 })
-          : new THREE.LineBasicMaterial({ color, linewidth: width });
-        const line = new THREE.Line(geometry, material);
-        if (dashed) line.computeLineDistances();
-        world.add(line);
-        return line;
-      }
-
-      function countryBorder(poly, color) {
-        const closed = poly.concat([poly[0]]);
-        return polyline(closed, color, 1, 0.34, false);
-      }
-      countryBorder(drcPoly, 0x1e2820);
-      countryBorder(rwandaPoly, 0x182212);
-
-      const neighborBorders = [
-        [[11.7, 5.1], [9.2, 3.2], [8.4, 0.4], [10.0, -2.4], [12.2, -4.5]],
-        [[30.9, 3.2], [33.5, 1.3], [34.3, -1.2], [33.5, -3.6], [31.0, -5.2]],
-        [[16.6, -10.2], [18.5, -12.0], [22.2, -13.2], [26.0, -12.1], [29.0, -9.0]]
-      ];
-      neighborBorders.forEach(line => polyline(line, 0x202822, 1, 0.26, true));
-
-      const riverPoints = [
-        [25.2, 0.55], [24.1, -0.1], [22.5, -0.25], [21.3, -0.55], [19.4, -0.25],
-        [18.2, 0.05], [17.2, -0.85], [16.5, -1.75], [16.1, -2.45], [15.4, -3.35],
-        [15.31, -4.32], [14.35, -4.9], [13.6, -5.18], [13.0, -5.58], [12.4, -6.02]
-      ];
-      const riverCurve = new THREE.CatmullRomCurve3(riverPoints.map(p => {
-        const v = project(p[0], p[1]);
-        v.y += 0.55;
-        return v;
-      }), false, 'catmullrom', 0.25);
-      const riverGeo = new THREE.TubeBufferGeometry(riverCurve, 180, 0.35, 8, false);
-      const riverMat = new THREE.MeshStandardMaterial({ color: 0x1f9eda, emissive: 0x052a42, roughness: 0.38, metalness: 0.08 });
-      const river = new THREE.Mesh(riverGeo, riverMat);
-      river.receiveShadow = true;
-      river.userData.tooltip = 'Fleuve Congo: navigable arterial river flowing toward the Atlantic at Banana.';
-      world.add(river);
-
-      const corridorLonLat = [
-        [30.06, -1.95], [28.55, -2.55], [26.8, -3.25], [24.1, -3.55], [21.7, -3.95],
-        [19.1, -4.55], [16.85, -4.85], [15.31, -4.32], [13.72, -5.18], [12.4, -6.02]
-      ];
-      const corridorCurve = new THREE.CatmullRomCurve3(corridorLonLat.map(p => {
-        const v = project(p[0], p[1]);
-        v.y += 1.25;
-        return v;
-      }), false, 'catmullrom', 0.18);
-
-      function makeTube(curve, radius, color, yLift, name) {
-        const pts = curve.getPoints(220).map(v => v.clone().add(new THREE.Vector3(0, yLift || 0, 0)));
-        const localCurve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.1);
-        const mesh = new THREE.Mesh(
-          new THREE.TubeBufferGeometry(localCurve, 260, radius, 10, false),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.64, metalness: 0.18 })
-        );
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.name = name || '';
-        world.add(mesh);
-        return mesh;
-      }
-
-      const roadOffsetPts = corridorCurve.getPoints(240).map((p, i, arr) => {
-        const prev = arr[Math.max(0, i - 1)];
-        const next = arr[Math.min(arr.length - 1, i + 1)];
-        const tangent = next.clone().sub(prev).normalize();
-        const side = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar(1.05);
-        return p.clone().add(side).add(new THREE.Vector3(0, -0.15, 0));
-      });
-      const roadCurve = new THREE.CatmullRomCurve3(roadOffsetPts, false, 'catmullrom', 0.1);
-      const railBase = makeTube(corridorCurve, 0.22, 0x202327, 0, 'Elevated rail corridor');
-      railBase.userData.tooltip = 'Corridor Kigali-Banana: elevated rail and road spine spanning roughly 2,000 km.';
-      const road = makeTube(roadCurve, 0.30, 0xcfd2d3, 0, 'Parallel logistics road');
-
-      const railPoints = corridorCurve.getPoints(160);
-      const tieMat = new THREE.MeshStandardMaterial({ color: 0xf1f0e8, roughness: 0.72 });
-      const sleeperGeo = new THREE.BoxBufferGeometry(1.35, 0.13, 0.18);
-      for (let i = 2; i < railPoints.length - 2; i += 3) {
-        const p = railPoints[i];
-        const t = railPoints[i + 1].clone().sub(railPoints[i - 1]).normalize();
-        const sleeper = new THREE.Mesh(sleeperGeo, tieMat);
-        sleeper.position.copy(p).add(new THREE.Vector3(0, 0.28, 0));
-        sleeper.rotation.y = Math.atan2(t.x, t.z);
-        sleeper.castShadow = true;
-        world.add(sleeper);
-      }
-
-      const railMat = new THREE.MeshStandardMaterial({ color: 0x50545a, roughness: 0.46, metalness: 0.55 });
-      [-0.36, 0.36].forEach(sideValue => {
-        const pts = corridorCurve.getPoints(250).map((p, i, arr) => {
-          const prev = arr[Math.max(0, i - 1)];
-          const next = arr[Math.min(arr.length - 1, i + 1)];
-          const t = next.clone().sub(prev).normalize();
-          const side = new THREE.Vector3(-t.z, 0, t.x).normalize().multiplyScalar(sideValue);
-          return p.clone().add(side).add(new THREE.Vector3(0, 0.36, 0));
-        });
-        const mesh = new THREE.Mesh(new THREE.TubeBufferGeometry(new THREE.CatmullRomCurve3(pts), 260, 0.055, 8), railMat);
-        mesh.castShadow = true;
-        world.add(mesh);
-      });
-
-      const interactive = [];
-      function addHitBox(name, position, size, tooltipText) {
-        const box = new THREE.Mesh(
-          new THREE.BoxBufferGeometry(size.x, size.y, size.z),
-          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-        );
-        box.position.copy(position);
-        box.userData.tooltip = tooltipText;
-        box.name = name;
-        scene.add(box);
-        interactive.push(box);
-        return box;
-      }
-
-      const kigaliPos = project(kigali.lon, kigali.lat);
-      addHitBox('Rwanda', kigaliPos.clone().add(new THREE.Vector3(0, 4, 0)), new THREE.Vector3(9, 8, 9), 'Rwanda: eastern highland origin of the Kigali-Banana export corridor.');
-
-      function makeBuilding(w, h, d, color, position, roofColor) {
-        const group = new THREE.Group();
-        const body = new THREE.Mesh(
-          new THREE.BoxBufferGeometry(w, h, d),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.68, metalness: 0.05 })
-        );
-        body.position.y = h / 2;
-        body.castShadow = true;
-        body.receiveShadow = true;
-        group.add(body);
-        if (roofColor !== undefined) {
-          const roof = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(w * 1.04, 0.12, d * 1.04),
-            new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.5, metalness: 0.15 })
-          );
-          roof.position.y = h + 0.09;
-          roof.castShadow = true;
-          group.add(roof);
-        }
-        group.position.copy(position);
-        world.add(group);
-        return group;
-      }
-
-      const bananaPos = project(banana.lon, banana.lat);
-      const port = new THREE.Group();
-      port.position.copy(bananaPos).add(new THREE.Vector3(-1.2, 0.8, 0.8));
-      world.add(port);
-
-      function addPortObject(obj, x, y, z, rot) {
-        obj.position.set(x, y, z);
-        if (rot) obj.rotation.y = rot;
-        port.add(obj);
-        return obj;
-      }
-
-      const quayMat = new THREE.MeshStandardMaterial({ color: 0x626c6f, roughness: 0.78, metalness: 0.08 });
-      const quay = new THREE.Mesh(new THREE.BoxBufferGeometry(3.0, 0.55, 15.0), quayMat);
-      quay.castShadow = true;
-      quay.receiveShadow = true;
-      addPortObject(quay, -2.2, 0.45, -3.7, -0.18);
-
-      const apron = new THREE.Mesh(new THREE.BoxBufferGeometry(9.0, 0.35, 7.2), quayMat);
-      apron.castShadow = true;
-      apron.receiveShadow = true;
-      addPortObject(apron, 2.6, 0.35, 0.2, -0.18);
-
-      function createCrane() {
-        const group = new THREE.Group();
-        const yellow = new THREE.MeshStandardMaterial({ color: 0xf4c032, roughness: 0.42, metalness: 0.18 });
-        const dark = new THREE.MeshStandardMaterial({ color: 0x2b2e32, roughness: 0.5, metalness: 0.4 });
-        const legGeo = new THREE.BoxBufferGeometry(0.18, 2.4, 0.18);
-        [[-0.45, 0, -0.35], [0.45, 0, -0.35], [-0.45, 0, 0.35], [0.45, 0, 0.35]].forEach(p => {
-          const leg = new THREE.Mesh(legGeo, yellow);
-          leg.position.set(p[0], 1.2, p[2]);
-          leg.castShadow = true;
-          group.add(leg);
-        });
-        const top = new THREE.Mesh(new THREE.BoxBufferGeometry(1.25, 0.18, 0.9), yellow);
-        top.position.y = 2.45;
-        top.castShadow = true;
-        group.add(top);
-        const armPivot = new THREE.Group();
-        armPivot.position.set(-0.15, 2.55, 0);
-        const arm = new THREE.Mesh(new THREE.BoxBufferGeometry(0.16, 0.13, 4.6), yellow);
-        arm.position.z = -1.55;
-        arm.castShadow = true;
-        armPivot.add(arm);
-        const cable = new THREE.Mesh(new THREE.BoxBufferGeometry(0.04, 1.0, 0.04), dark);
-        cable.position.set(0, -0.48, -3.25);
-        armPivot.add(cable);
-        const spreader = new THREE.Mesh(new THREE.BoxBufferGeometry(0.82, 0.08, 0.26), dark);
-        spreader.position.set(0, -1.0, -3.25);
-        spreader.castShadow = true;
-        armPivot.add(spreader);
-        armPivot.userData.rotates = true;
-        group.add(armPivot);
-        group.userData.armPivot = armPivot;
-        return group;
-      }
-
-      const cranes = [];
-      for (let i = 0; i < 6; i++) {
-        const crane = createCrane();
-        crane.rotation.y = -0.28;
-        addPortObject(crane, -1.6 + (i % 2) * 1.85, 0.64, -9.4 + Math.floor(i / 2) * 3.1, 0);
-        cranes.push(crane);
-      }
-
-      const containerMats = [0xa73a35, 0x2364a1, 0xdc7c2c].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.65, metalness: 0.08 }));
-      const containerGeo = new THREE.BoxBufferGeometry(1.05, 0.45, 0.55);
-      for (let row = 0; row < 6; row++) {
-        for (let col = 0; col < 8; col++) {
-          const stacks = 1 + ((row + col) % 3);
-          for (let s = 0; s < stacks; s++) {
-            const c = new THREE.Mesh(containerGeo, containerMats[(row + col + s) % containerMats.length]);
-            c.position.set(0.2 + col * 0.68, 0.63 + s * 0.47, -2.3 + row * 0.74);
-            c.rotation.y = -0.18;
-            c.castShadow = true;
-            c.receiveShadow = true;
-            port.add(c);
-          }
-        }
-      }
-
-      makeBuilding(1.7, 3.2, 1.5, 0x8e9aa0, bananaPos.clone().add(new THREE.Vector3(4.9, 0.8, 2.7)), 0x222832);
-      const towerTop = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(2.15, 0.8, 1.95),
-        new THREE.MeshStandardMaterial({ color: 0xb5c0c2, roughness: 0.4, metalness: 0.1, emissive: 0x11191c })
-      );
-      towerTop.position.copy(bananaPos).add(new THREE.Vector3(4.9, 4.35, 2.7));
-      towerTop.castShadow = true;
-      world.add(towerTop);
-
-      [
-        [4.8, 1.05, 2.3, 0x6d7576, 4.6, 3.2],
-        [3.4, 0.9, 2.1, 0x7b817a, 1.0, 4.2],
-        [3.8, 1.1, 2.0, 0x6e7b86, 7.6, -1.1]
-      ].forEach(spec => {
-        const p = bananaPos.clone().add(new THREE.Vector3(spec[4], 0.8, spec[5]));
-        const b = makeBuilding(spec[0], spec[1], spec[2], spec[3], p, 0x30353b);
-        b.rotation.y = -0.18;
-      });
-
-      const sez = new THREE.Group();
-      sez.position.copy(bananaPos).add(new THREE.Vector3(9.8, 0.9, 4.7));
-      world.add(sez);
-      const factoryMat = new THREE.MeshStandardMaterial({ color: 0x707d82, roughness: 0.62, metalness: 0.1 });
-      const solarMat = new THREE.MeshStandardMaterial({ color: 0x111c27, emissive: 0x06111d, roughness: 0.26, metalness: 0.35 });
-      for (let i = 0; i < 5; i++) {
-        const factory = new THREE.Mesh(new THREE.BoxBufferGeometry(2.6, 0.95 + (i % 2) * 0.35, 1.75), factoryMat);
-        factory.position.set((i % 3) * 3.2, factory.geometry.parameters.height / 2, Math.floor(i / 3) * 2.5);
-        factory.castShadow = true;
-        factory.receiveShadow = true;
-        sez.add(factory);
-        const solar = new THREE.Mesh(new THREE.BoxBufferGeometry(2.05, 0.06, 1.25), solarMat);
-        solar.position.copy(factory.position).add(new THREE.Vector3(0, factory.geometry.parameters.height / 2 + 0.08, 0));
-        solar.rotation.y = 0.18;
-        sez.add(solar);
-      }
-
-      const smokeParticles = [];
-      const stackMat = new THREE.MeshStandardMaterial({ color: 0x394147, roughness: 0.55, metalness: 0.15 });
-      const smokeMat = new THREE.MeshBasicMaterial({ color: 0xc5c5bd, transparent: true, opacity: 0.22, depthWrite: false });
-      [[0.8, 0.9], [4.2, 0.4], [6.7, 2.7]].forEach(pos => {
-        const stack = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.18, 0.22, 2.3, 16), stackMat);
-        stack.position.set(pos[0], 1.15, pos[1]);
-        stack.castShadow = true;
-        sez.add(stack);
-        for (let i = 0; i < 10; i++) {
-          const puff = new THREE.Mesh(new THREE.SphereBufferGeometry(0.18 + Math.random() * 0.16, 10, 8), smokeMat.clone());
-          puff.position.set(pos[0] + (Math.random() - 0.5) * 0.35, 2.45 + i * 0.22, pos[1] + (Math.random() - 0.5) * 0.35);
-          puff.userData.base = puff.position.clone();
-          puff.userData.speed = 0.25 + Math.random() * 0.23;
-          puff.userData.phase = Math.random() * Math.PI * 2;
-          smokeParticles.push(puff);
-          sez.add(puff);
-        }
-      });
-
-      addHitBox('Port de Banana', bananaPos.clone().add(new THREE.Vector3(1.5, 3.2, -2.6)), new THREE.Vector3(13, 7, 17), 'Port de Banana: deep-water Atlantic gateway at the mouth of the Congo River.');
-      addHitBox('ZES', bananaPos.clone().add(new THREE.Vector3(13, 3.2, 5.7)), new THREE.Vector3(13, 7, 9), 'Zone Economique Speciale: factories, warehouses, solar roofs and export processing.');
-      addHitBox('Corridor', corridorCurve.getPoint(0.45).clone().add(new THREE.Vector3(0, 2.8, 0)), new THREE.Vector3(72, 6, 14), 'Rail and road corridor linking Kigali to Banana across the DRC.');
-
-      function createShip(color) {
-        const group = new THREE.Group();
-        const hull = new THREE.Mesh(
-          new THREE.BoxBufferGeometry(2.5, 0.8, 6.7),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.48, metalness: 0.18 })
-        );
-        hull.position.y = 0.42;
-        hull.castShadow = true;
-        group.add(hull);
-        const bow = new THREE.Mesh(
-          new THREE.ConeBufferGeometry(1.27, 1.6, 4),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.48, metalness: 0.18 })
-        );
-        bow.rotation.y = Math.PI / 4;
-        bow.scale.z = 0.52;
-        bow.position.set(0, 0.42, -4.12);
-        bow.castShadow = true;
-        group.add(bow);
-        const deck = new THREE.Mesh(new THREE.BoxBufferGeometry(2.15, 0.18, 5.5), new THREE.MeshStandardMaterial({ color: 0x30363c, roughness: 0.52 }));
-        deck.position.y = 0.92;
-        group.add(deck);
-        const bridge = new THREE.Mesh(new THREE.BoxBufferGeometry(1.25, 0.8, 0.9), new THREE.MeshStandardMaterial({ color: 0xd6dde0, roughness: 0.4 }));
-        bridge.position.set(0, 1.35, 2.05);
-        bridge.castShadow = true;
-        group.add(bridge);
-        for (let r = 0; r < 3; r++) {
-          for (let c = 0; c < 4; c++) {
-            const cont = new THREE.Mesh(new THREE.BoxBufferGeometry(0.52, 0.28, 0.42), containerMats[(r + c) % 3]);
-            cont.position.set(-0.78 + c * 0.52, 1.12 + r * 0.28, -1.8 + (c % 2) * 0.46);
-            group.add(cont);
-          }
-        }
-        return group;
-      }
-
-      const ships = [];
-      const docked1 = createShip(0x243b4d);
-      docked1.position.copy(bananaPos).add(new THREE.Vector3(-6.2, 0.25, -5.8));
-      docked1.rotation.y = -0.16;
-      world.add(docked1);
-      ships.push(docked1);
-      const docked2 = createShip(0x304449);
-      docked2.position.copy(bananaPos).add(new THREE.Vector3(-6.8, 0.25, -0.6));
-      docked2.rotation.y = -0.22;
-      world.add(docked2);
-      ships.push(docked2);
-      const approachingShip = createShip(0x27364c);
-      approachingShip.position.copy(bananaPos).add(new THREE.Vector3(-33, 0.25, 3.6));
-      approachingShip.rotation.y = -0.35;
-      world.add(approachingShip);
-      ships.push(approachingShip);
-
-      function makeTrain() {
-        const group = new THREE.Group();
-        const locoMat = new THREE.MeshStandardMaterial({ color: 0xd33f2f, roughness: 0.45, metalness: 0.14 });
-        const wagonMat = new THREE.MeshStandardMaterial({ color: 0x46525a, roughness: 0.55, metalness: 0.18 });
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111214, roughness: 0.42, metalness: 0.5 });
-        function car(w, h, d, mat, x) {
-          const g = new THREE.Group();
-          const body = new THREE.Mesh(new THREE.BoxBufferGeometry(w, h, d), mat);
-          body.position.y = h / 2 + 0.16;
-          body.castShadow = true;
-          g.add(body);
-          [-w * 0.32, w * 0.32].forEach(wx => {
-            [-d * 0.34, d * 0.34].forEach(wz => {
-              const wh = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.16, 0.16, 0.12, 14), wheelMat);
-              wh.rotation.z = Math.PI / 2;
-              wh.position.set(wx, 0.16, wz);
-              g.add(wh);
-            });
-          });
-          g.position.x = x;
-          return g;
-        }
-        group.add(car(1.0, 0.78, 1.55, locoMat, 0));
-        for (let i = 1; i <= 4; i++) group.add(car(0.92, 0.58, 1.35, wagonMat, i * 1.18));
-        group.scale.set(0.62, 0.62, 0.62);
-        world.add(group);
-        return group;
-      }
-      const train = makeTrain();
-
-      function stationAt(t, name) {
-        const p = corridorCurve.getPoint(t);
-        const group = new THREE.Group();
-        group.position.copy(p).add(new THREE.Vector3(0, 0.5, 0));
-        const markerMat = new THREE.MeshStandardMaterial({ color: 0xd5d9d0, roughness: 0.62, emissive: 0x282108 });
-        for (let i = 0; i < 3; i++) {
-          const hut = new THREE.Mesh(new THREE.BoxBufferGeometry(0.85, 0.5, 0.62), markerMat);
-          hut.position.set((i - 1) * 0.85, 0.25, (i % 2) * 0.75);
-          hut.castShadow = true;
-          group.add(hut);
-        }
-        const glow = new THREE.Mesh(
-          new THREE.CircleBufferGeometry(1.45, 32),
-          new THREE.MeshBasicMaterial({ color: 0xf3d371, transparent: true, opacity: 0.17, depthWrite: false })
-        );
-        glow.rotation.x = -Math.PI / 2;
-        glow.position.y = 0.04;
-        group.add(glow);
-        group.name = name;
-        world.add(group);
-        return group;
-      }
-      stationAt(0.22, 'Eastern depot');
-      stationAt(0.49, 'Central basin depot');
-      stationAt(0.74, 'Kinshasa logistics station');
-
-      const treeMat = new THREE.MeshStandardMaterial({ color: 0x244a2b, roughness: 0.9 });
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x594637, roughness: 0.86 });
-      const treeGeo = new THREE.ConeBufferGeometry(0.32, 1.15, 8);
-      const trunkGeo = new THREE.CylinderBufferGeometry(0.07, 0.09, 0.34, 8);
-      for (let i = 0; i < 210; i++) {
-        const t = Math.random() * 0.92 + 0.03;
-        const center = corridorCurve.getPoint(t);
-        const tangent = corridorCurve.getTangent(t).normalize();
-        const side = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize().multiplyScalar((Math.random() > 0.5 ? 1 : -1) * (2.2 + Math.random() * 5.5));
-        const p = center.add(side);
-        const group = new THREE.Group();
-        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-        trunk.position.y = 0.17;
-        group.add(trunk);
-        const crown = new THREE.Mesh(treeGeo, treeMat);
-        crown.position.y = 0.9;
-        crown.castShadow = true;
-        group.add(crown);
-        group.position.set(p.x, p.y + 0.03, p.z);
-        group.scale.setScalar(0.7 + Math.random() * 0.55);
-        world.add(group);
-      }
-
-      const cityMat = new THREE.MeshStandardMaterial({ color: 0xb8b7a9, roughness: 0.72, emissive: 0x12100b });
-      function cityMarker(lon, lat, radius, color) {
-        const p = project(lon, lat);
-        const mesh = new THREE.Mesh(
-          new THREE.CylinderBufferGeometry(radius, radius * 1.08, 0.42, 24),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.62, emissive: 0x171108 })
-        );
-        mesh.position.copy(p).add(new THREE.Vector3(0, 0.45, 0));
-        mesh.castShadow = true;
-        world.add(mesh);
-        return mesh;
-      }
-      cityMarker(kigali.lon, kigali.lat, 0.6, 0xf0d475);
-      cityMarker(kinshasa.lon, kinshasa.lat, 0.72, 0xd4c9a4);
-
-      const labels = [];
-      function addLabel(text, vec, lift) {
-        const el = document.createElement('div');
-        el.className = 'label';
-        el.textContent = text;
-        document.body.appendChild(el);
-        labels.push({ el, vec: vec.clone().add(new THREE.Vector3(0, lift || 0, 0)) });
-      }
-      addLabel('Port de Banana', bananaPos, 7.5);
-      addLabel('Zone Économique Spéciale', bananaPos.clone().add(new THREE.Vector3(12.3, 0, 5.2)), 6.4);
-      addLabel('Kigali, Rwanda', kigaliPos, 6.4);
-      addLabel('Kinshasa', project(kinshasa.lon, kinshasa.lat), 5.2);
-      addLabel('Corridor (~2 000 km)', corridorCurve.getPoint(0.42), 7.0);
-      addLabel('Océan Atlantique', new THREE.Vector3(-64, 1.0, 25), 2.2);
-      addLabel('Fleuve Congo', riverCurve.getPoint(0.58), 4.2);
-
-      function createStars() {
-        const positions = [];
-        for (let i = 0; i < 1200; i++) {
-          const r = 450 + Math.random() * 280;
-          const theta = Math.random() * Math.PI * 2;
-          const phi = Math.random() * Math.PI * 0.42;
-          positions.push(Math.cos(theta) * Math.cos(phi) * r, 120 + Math.sin(phi) * r, Math.sin(theta) * Math.cos(phi) * r);
-        }
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.75, sizeAttenuation: true }));
-        scene.add(stars);
-      }
-      createStars();
-
-      let trainT = 0.02;
-      const raycaster = new THREE.Raycaster();
-      const pointer = new THREE.Vector2();
-      let hovered = null;
-
-      function updateLabels() {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        labels.forEach(label => {
-          const v = label.vec.clone().project(camera);
-          const visible = v.z > -1 && v.z < 1;
-          label.el.style.display = visible ? 'block' : 'none';
-          label.el.style.left = ((v.x * 0.5 + 0.5) * w) + 'px';
-          label.el.style.top = ((-v.y * 0.5 + 0.5) * h) + 'px';
-        });
-      }
-
-      function updateTooltip(event) {
-        pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-        pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(pointer, camera);
-        const hits = raycaster.intersectObjects(interactive.concat([river, railBase]), true);
-        hovered = hits.length ? hits[0].object : null;
-        while (hovered && !hovered.userData.tooltip && hovered.parent) hovered = hovered.parent;
-        if (hovered && hovered.userData.tooltip) {
-          tooltip.style.display = 'block';
-          tooltip.textContent = hovered.userData.tooltip;
-          tooltip.style.left = Math.min(window.innerWidth - 280, event.clientX + 14) + 'px';
-          tooltip.style.top = Math.min(window.innerHeight - 70, event.clientY + 14) + 'px';
-          document.body.style.cursor = 'help';
-        } else {
-          tooltip.style.display = 'none';
-          document.body.style.cursor = '';
-        }
-      }
-      window.addEventListener('mousemove', updateTooltip);
-
-      function orientToCurve(obj, curve, t, sideOffset) {
-        const p = curve.getPoint(t);
-        const tan = curve.getTangent(t).normalize();
-        const side = new THREE.Vector3(-tan.z, 0, tan.x).normalize().multiplyScalar(sideOffset || 0);
-        obj.position.copy(p).add(side).add(new THREE.Vector3(0, 0.78, 0));
-        obj.rotation.y = Math.atan2(tan.x, tan.z) + Math.PI / 2;
-      }
-
-      const clock = new THREE.Clock();
-      function animate() {
-        requestAnimationFrame(animate);
-        const elapsed = clock.getElapsedTime();
-        const dt = Math.min(clock.getDelta(), 0.05);
-
-        if (!userInteracting && performance.now() > resumeOrbitAt) {
-          const offset = camera.position.clone().sub(controls.target);
-          offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), dt * 0.055);
-          camera.position.copy(controls.target).add(offset);
-        }
-
-        trainT = (trainT - dt * 0.025 + 1) % 1;
-        orientToCurve(train, corridorCurve, trainT, 0);
-
-        cranes.forEach((crane, i) => {
-          crane.userData.armPivot.rotation.y = Math.sin(elapsed * 0.35 + i * 0.7) * 0.28;
-        });
-
-        approachingShip.position.copy(bananaPos).add(new THREE.Vector3(-33 + (elapsed * 1.05 % 24), 0.25 + Math.sin(elapsed * 1.1) * 0.08, 3.6));
-        approachingShip.rotation.y = -0.35 + Math.sin(elapsed * 0.35) * 0.03;
-        docked1.position.y = bananaPos.y + 0.25 + Math.sin(elapsed * 0.8) * 0.035;
-        docked2.position.y = bananaPos.y + 0.25 + Math.cos(elapsed * 0.72) * 0.035;
-
-        smokeParticles.forEach(puff => {
-          const base = puff.userData.base;
-          const cycle = (elapsed * puff.userData.speed + puff.userData.phase) % 2.6;
-          puff.position.set(
-            base.x + Math.sin(elapsed * 0.55 + puff.userData.phase) * 0.24,
-            base.y + cycle * 0.62,
-            base.z + Math.cos(elapsed * 0.42 + puff.userData.phase) * 0.22
-          );
-          const alpha = Math.max(0, 0.24 - cycle * 0.07);
-          puff.material.opacity = alpha;
-          puff.scale.setScalar(1 + cycle * 0.36);
-        });
-
-        world.traverse(obj => {
-          if (obj.userData.wave && obj.geometry && obj.geometry.attributes.position) {
-            const pos = obj.geometry.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-              const x = pos.getX(i);
-              const z = pos.getZ(i);
-              pos.setY(i, Math.sin(x * 0.34 + elapsed * 1.15) * 0.08 + Math.cos(z * 0.3 + elapsed * 0.9) * 0.06);
-            }
-            pos.needsUpdate = true;
-            obj.geometry.computeVertexNormals();
-          }
-        });
-
-        controls.update();
-        updateLabels();
-        renderer.render(scene, camera);
-      }
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+    <div id="legend">
+        <b>CLADDING LEGEND</b><br>
+        <span class="color-dot" style="background:#7a4a3a"></span> C1: Red Brick Base<br>
+        <span class="color-dot" style="background:#37474f"></span> C3: Charcoal Metal Cladding<br>
+        <span class="color-dot" style="background:#a1887f"></span> Wood Fencing (Sienna Tone)<br>
+        <span class="color-dot" style="background:#000"></span> Black Aluminum Trim
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xdceefb);
+        const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        updateLabels();
-      });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
 
-      animate();
-    })();
-  </script>
+        const controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(70, 40, 100);
+        controls.target.set(0, 5, 0);
+        controls.enableDamping = true;
+
+        // --- LIGHTING ---
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        sun.position.set(100, 200, 100);
+        sun.castShadow = true;
+        sun.shadow.mapSize.set(4096, 4096);
+        scene.add(sun);
+
+        // --- MATERIALS ---
+        const matBrick = new THREE.MeshStandardMaterial({ color: 0x7a4a3a, roughness: 0.8 }); 
+        const matMetal = new THREE.MeshStandardMaterial({ color: 0x37474f, roughness: 0.4, metalness: 0.2 });
+        const matConc = new THREE.MeshStandardMaterial({ color: 0x90a4ae });
+        const matRoad = new THREE.MeshStandardMaterial({ color: 0x455a64 });
+        const matGrass = new THREE.MeshStandardMaterial({ color: 0x689f38 });
+        const matFence = new THREE.MeshStandardMaterial({ color: 0xa1887f }); 
+        const matGlass = new THREE.MeshStandardMaterial({ color: 0x81d4fa, transparent: true, opacity: 0.3 });
+        const matFrame = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const matNeighbor = new THREE.MeshStandardMaterial({ color: 0xcfd8dc, transparent: true, opacity: 0.3 });
+
+        // --- SITE ---
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), matGrass);
+        ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
+        scene.add(ground);
+
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(300, 20), matRoad);
+        road.rotation.x = -Math.PI/2; road.position.set(0, 0.05, 60);
+        scene.add(road);
+
+        const drive = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 60), matConc);
+        drive.rotation.x = -Math.PI/2; drive.position.set(-8.5, 0.08, 15);
+        scene.add(drive);
+
+        const n42 = new THREE.Mesh(new THREE.BoxGeometry(15, 9, 30), matNeighbor);
+        n42.position.set(20, 4.5, 15); scene.add(n42);
+        const n48 = new THREE.Mesh(new THREE.BoxGeometry(15, 7, 25), matNeighbor);
+        n48.position.set(-25, 3.5, 15); scene.add(n48);
+
+        // --- HOUSES FACTORY ---
+        function createHouse(x, z, w, l, h, isFlipped = false) {
+            const group = new THREE.Group();
+            const brickH = 3.13;
+            const brick = new THREE.Mesh(new THREE.BoxGeometry(w, brickH, l), matBrick);
+            brick.position.y = brickH / 2; brick.castShadow = true; group.add(brick);
+            const top = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, h - brickH, l + 0.1), matMetal);
+            top.position.y = brickH + (h - brickH)/2; top.castShadow = true; group.add(top);
+            const win = new THREE.Mesh(new THREE.BoxGeometry(w * 0.4, 2.2, 0.4), matFrame);
+            win.position.set(isFlipped ? w/4 : -w/4, 7.5, l/2 + 0.1); group.add(win);
+            const bal = new THREE.Mesh(new THREE.BoxGeometry(w - 0.5, 0.2, 1.8), matConc);
+            bal.position.set(0, 6.22, l/2 + 0.9); group.add(bal);
+            group.position.set(x, 0, z);
+            return group;
+        }
+
+        const houseWidth = 5.0; 
+        scene.add(createHouse(3.5, 15, houseWidth, 19, 10.95, true));
+        scene.add(createHouse(-3.5, 15, houseWidth, 19, 10.95, false));
+        scene.add(createHouse(0, -15, 10.5, 6.25, 6.3, false));
+
+        const fenceL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.5, 60), matFence);
+        fenceL.position.set(7.5, 1.25, 15); scene.add(fenceL);
+        const fenceR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.5, 60), matFence);
+        fenceR.position.set(-11.5, 1.25, 15); scene.add(fenceR);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>
